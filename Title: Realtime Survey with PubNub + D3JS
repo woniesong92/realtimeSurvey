@@ -1,0 +1,117 @@
+Title: Realtime Survey with PubNub + D3JS - 1
+
+Imagine you are the host of a fashion show where there are 5 different models and 1000 people in the audience.
+This is a unique fashion show where people get to vote and pick the most stylish model as the models are walking on the stage.
+All the models walk together at the same time and as a host, you want to show the audience which model is winning as they are walking.
+Because the conventional way of collecting votes at the end is not going to work, he decides to implement a real-time survey with PubNub and D3JS!
+
+D3JS a JavaScript library that helps you visualize data in a format that's easily understandable. For example, if you have an
+array of numbers you can display it in line charts, bar charts, pie charts, and more. I recommend you take a quick peek
+at the official d3js reference (link) for a few minutes to get a better grasp of the library and see what can be accomplished.
+
+Since we want to have a dynamic survey board that shows each model's popularity in real time, we would want to have something like this in the end.
+
+[img]
+
+What do we have here? We have a bar graph that shows each model's popularity and people in the audience can vote for their favorite model, as they are watching the show.
+
+First of all, we follow the routine of setting up our PubNub publish and subscribe keys so we can communicate with PubNub server.
+
+  var pubnub = PUBNUB.init({
+      channel: "survey",
+      publish_key: "pub-c-aa0da548-076b-4c46-bf87-87d2d457368a",
+      subscribe_key: "sub-c-c3f6a9fe-45cb-11e4-a251-02ee2ddab7fe"
+  });
+
+We should also prepare data to visualize. In this case, it's a list of models with 0 votes in the beginning.
+
+  window.data = [{name: "Amanda", vote: 0},
+                {name: "Katie", vote: 0},
+                {name: "Janice", vote: 0},
+                {name: "Kim", vote: 0},
+                {name: "Amy", vote: 0}];
+
+As people cast votes, the bar graph will have to update itself to show how popular the models are. Therefore, we need to "listen to" each person's submitting vote,
+and render the bar graph again.
+
+  pubnub.subscribe({
+    channel: 'survey',
+    message: increment
+  });
+
+By subscribing to a channel "survey", everytime a new message is published in the channel we call the function "increment," which should increase the number of votes for the model, whose name is the parameter for the function. For example, increment(Amanda) will increase Amanda's number of votes by 1. Then, what should the function increment() look like?
+
+  function increment(msg) {
+    console.log("update");
+    for (var i=0; i<window.data.length; i++) {
+      var el = window.data[i];
+      if (el.name == msg) {
+        el.vote += 1;
+      }
+    }
+    draw(data);
+  }
+
+We find the model's name in the data array and increase the model's number of votes by one. Then, we have to render the graph with the updated data by calling draw() method. This is where d3js comes into play to transform the data array into a simple and beautiful bar charts.
+
+  function draw(data) {
+      var bars = d3.select(".container")
+        .selectAll("div")
+        .data(data);
+      bars
+        .enter().append("div")
+        .attr("class", "bar")
+      bars
+        .style("width", function (d) {return d.vote*10 + "px";})
+        .text(function (d) {
+          return d.name + ' (' + d.vote + ')'; });
+      bars
+        .append("button")
+        .text("Vote")
+        .attr("class", "vote-btn btn-default btn-primary")
+        .on("click", function(d) {
+          console.log(d.name);
+          sendData(d.name);
+        });
+      bars
+        .exit().remove();
+  };
+
+Thi
+
+
+
+
+
+
+
+
+
+//////
+
+
+Most of the time when we think of push notifications, we think mobile. But desktop push notifications are just as important. In this blog post, we’ll show you how to make a Chrome Extension that broadcasts chrome push notifications to desktop users in realtime.
+
+Chrome Extensions are simple utility apps you can easily add to your Chrome browser. Some of the well-known extensions like Ad-Block (removes internet advertisements from webpages or even videos players) are so famous that they have millions of active users.
+
+Because they are light-weight and easy to access, developers who want to deliver a simple feature to wide audience through a platform like Chrome Webstore should be interested in developing Chrome Extensions. While writing a Chrome Extension is usually relatively easier than developing a native mobile app, a chrome extension can be just as much powerful.
+
+Getting Started With Chrome Extensions
+If this is your first time building a chrome extension, this tutorial provided by Google might be useful, but if you just follow along the blog post you should be fine.
+
+Let’s get started. This is going to be the basic structure of our Chrome Push Notification extension.
+
+It specifies various requirements of Hello Students extension. The critical parts are permissions, background and browser_action. We need to have notifications and https://*.pubnub.com/* in permissions to allow the extension to use PubNub JavaScript SDK, and built-in Chrome notification. Otherwise, you won’t be able to make JavaScript calls outside your chrome extension for security reasons.
+
+Browser_action specifies what will happen when the user clicks the browser icon(on top right of your browser). In this case, we specify that a popup will open, and it will display what’s included in popup.html. We don’t really need a popup because the Chrome Extension is only used to receive messages from the teacher, but let’s just have it as a placeholder just in case you might want to expand it to have some other features later on. What’s interesting should be the background.html.
+
+We are going to subscribe to a pubnub channel in the background to get a notification every time we receive a message from the teacher. As soon as the teacher broadcasts a message through the channel, using his own client, we will see a notification box in our browser.
+
+Subscribing to Channels
+Let’s first set up our PubNub keys, so we can subscribe to a channel.
+
+You’ll first need to sign up for a PubNub account. Once you sign up, you can get your unique PubNub keys in the PubNub Developer Portal.
+
+in pubnub-setup.js:
+
+- See more at: http://www.pubnub.com/blog/how-to-broadcast-desktop-chrome-push-notifications-in-the-browser/#sthash.sLCmPRaS.dpuf
