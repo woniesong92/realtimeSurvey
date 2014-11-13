@@ -78,6 +78,6 @@ $(function() {
     });
   }
 
-  // init_votes();
+  init_votes();
   draw(data);
 });
